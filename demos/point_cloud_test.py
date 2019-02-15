@@ -13,7 +13,7 @@ rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 #rc('font',**{'family':'serif','serif':['Palatino']})
 rc('text', usetex=True)
 
-# To use the package in the main folder
+# To use the codes in the main folder
 import sys
 sys.path.insert(0, 'codes/')
 sys.path.insert(0, '../codes/')
@@ -28,7 +28,7 @@ dmp = dyn_mp(n_dmps=2, n_bfs=50, K = 1000 * np.ones(2),dt = .01, alpha_s = 3.)
 
 def rotation_matrix(u):
 	"""
-	Compute the roation matrix of a rotation of theta around the direction given
+	Compute the roation matrix of a rotation of pi/2 around the direction given
 	by u (if n_dim = 3)
 	"""
 	c = 0.0
@@ -44,29 +44,6 @@ def rotation_matrix(u):
 		[(y * x * C + z * s), (y * y * C + c), (y * z * C - x * s)],
 		[(z * x * C - y * s), (z * y * C + x * s), (z * z * C + c)]])
 	return R
-
-# Define functions which create the mesh
-def mesh_rectangle(x_length, y_length, num_points, noise_var = 0.0):
-	# The following code make a rotated version. To solve it we just re-arrange the parameters
-	width = y_length
-	height = x_length
-	xfun = interp1d([0, height, height + width, 2*height + width, 2 * (height + width)], [height, 0, 0, height, height])
-	yfun = interp1d([0, height, height + width, 2*height + width, 2 * (height + width)],[0, 0, width, width, 0])
-	time = np.linspace(0, 2 * (width + height), num_points + 1)
-	time = time[0:-1]
-	obst_shape = np.array([xfun(time), yfun(time)])
-	obst_shape += np.random.rand(2, num_points) * np.sqrt(noise_var)
-	return obst_shape
-
-def mesh_ellipse(x_half_lenght, y_half_length, num_points, noise_var = 0.0):
-	time = np.linspace(0, 2 * np.pi, num_points + 1)
-	time = time[0:-1]
-	theta = time
-	x = x_half_lenght * np.cos(theta)
-	y = y_half_length * np.sin(theta)
-	obst_shape = np.array([x, y])
-	obst_shape += np.random.rand(2, num_points) * np.sqrt(noise_var)
-	return obst_shape
 
 def mesh_parallelepid(x_length, y_length, z_length, num_points, noise_var = 0.0):
 	# The following code make a rotated version. To solve it we just re-arrange the parameters
@@ -127,7 +104,6 @@ def mesh_parallelepid(x_length, y_length, z_length, num_points, noise_var = 0.0)
 	point_set = np.append(point_set, face_dw_2, axis = 0)
 	return point_set
 
-# The following block plots the meshes
 x_length = 2
 y_length = 3
 z_length = 1
@@ -176,8 +152,8 @@ for num_points in range_n_p:
 		solid = mesh_parallelepid(x_length, y_length, z_length, num_points)
 		# Computation time for volumetric obstacle
 		t_vol_ellipse = time.time()
-		# The computation of the smallest enclosing ellipse does not use the close formula (21)
-		# For generality, the point cloud is considered generic
+		# The computation of the smallest enclosing ellipse does not use any closef formula.
+		# For generality, the point cloud is considered generic.
 		center, radii, rotation = ET.getMinVolEllipse(solid, 0.01)
 		# Compute forcing term using superquadric
 		t_vol = time.time()
@@ -188,7 +164,7 @@ for num_points in range_n_p:
 		time_vol_obst_no_ellipse[count] += time.time() - t_vol # in seconds
 		# Computation time for volumetric obstacle
 		t = time.time()
-		# Compute the forcing term (for best comparison should find an efficient way)
+		# Compute the forcing term
 		phi = np.zeros(3)
 		for i in range(len(solid)):
 			# Rotation matrix
@@ -205,6 +181,7 @@ time_vol_obst /= tot_num_test
 time_vol_obst_no_ellipse /= tot_num_test
 time_point_obst /= tot_num_test
 
+# Plot
 lw = 1
 ms = 5
 fs = 14

@@ -25,7 +25,6 @@ class CanonicalSystem():
 	"""
 
 	def __init__(self, dt, alpha_s = 1., run_time = 1., **kwargs):
-		# Parameter assegnation
 		self.alpha_s = alpha_s
 		self.run_time = run_time
 		self.dt = dt
@@ -56,11 +55,7 @@ class CanonicalSystem():
 		(potentially closed) loop movements.
 		Decaying from 1 to 0 according to
 		  tau ds = - alpha_s s / error_coupling
-		tau float: gain on execution time increase tau to make the system execute faster
-		error_coupling float: it slows down the trajectory
 		"""
-		# Since the canonical system is linear, we use an exponential method
-		# (which is exact)
 		const = - self.alpha_s / tau / (error_coupling)
 		self.s *= np.exp(const * self.dt)
 		return self.s

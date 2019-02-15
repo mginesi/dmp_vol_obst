@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import seaborn
 
-# To use the package in the main folder
+# To use the codes in the main folder
 import sys
 sys.path.insert(0, '../codes/')
 sys.path.insert(0, 'codes/')
@@ -40,7 +40,7 @@ dmp = dmp_cartesian.DMPs_cartesian(n_dmps=2, n_bfs=40, K = 1050 * np.ones(2),dt 
 dmp.imitate_path(x_des=x_des)
 x_track, dx_track, ddx_track = dmp.rollout()
 x_classical = x_track
-# Execution with the obstacles
+# Reset state
 dmp.reset_state()
 x_track = np.zeros((1, dmp.n_dmps))
 dx_track = np.zeros((1, dmp.n_dmps))
@@ -89,11 +89,8 @@ while (not flag):
 fig = plt.figure(1)
 plt.clf()
 plt.figure(1, figsize=(6,6))
-#plt.plot(x_des[0,:], x_des[1,:], 'g--', label = 'desired')
 plt.plot(x_classical[:,0], x_classical[:, 1], '--b', lw=2, label = 'without obstacle')
 plt.plot(x_track[:,0], x_track[:,1], '-g', lw=2, label = 'with obstacle')
-#	plt.plot(dmp.goal[0], dmp.goal[1], 'ob', label = 'goal')
-# obstacle drawing
 
 """
 Point cloud obstacle
@@ -115,7 +112,6 @@ t_1 = np.linspace(0., np.pi * 2., num_obst_1)
 obst_list_1 = []
 obst_list_2 = []
 for n in range(num_obst_1):
-	#obst = np.array(x_c + a*np.cos(t[n]), y_c + b*np.sin(t[n]))
 	obst = obstacle.obstacle()
 	obst.def_obstacle (x_obst = np.array([x_c_1 + a_1*np.cos(t_1[n]), y_c_1 + b_1*np.sin(t_1[n])]), dx_obst = np.zeros(2))
 	obst_list_1.append(obst)

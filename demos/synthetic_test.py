@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import seaborn
 
-# To use the package in the main folder
+# To use the codes in the main folder
 import sys
 sys.path.insert(0, 'codes/')
 sys.path.insert(0, '../codes/')
@@ -28,7 +28,7 @@ dmp.x0 = x0
 dmp.goal = goal
 x_track, dx_track, ddx_track = dmp.rollout()
 x_classical = x_track
-# Execution with the obstacles
+# Reset state
 dmp.reset_state()
 x_track = np.zeros((1, dmp.n_dmps))
 dx_track = np.zeros((1, dmp.n_dmps))
@@ -39,17 +39,15 @@ dmp.ddx_old = np.zeros(dmp.n_dmps)
 flag = False
 dmp.t = 0
 
-"""
-Volumetric Obstacle
-"""
 x_track_s = dmp.x0
 x_track[0, :] = dmp.x0
+
+# Obstacles definition
 x_c_1 = 0.512
 y_c_1 = -0.152
 z_c_1 = 0.179 - 0.063
-# n = 2
-a_1 = 0.02
-b_1 = 0.09
+a_1 = 0.09
+b_1 = 0.02
 c_1 = 0.07
 x_c_2 = 0.659
 x_c_2 = 0.512
@@ -60,19 +58,18 @@ b_2 = b_1
 c_2 = c_1
 center_1 = np.array([x_c_1, y_c_1, z_c_1])
 radii_1 = np.array([a_1, b_1, c_1])
-radii_1 = np.array([b_1, a_1, c_1])
 coeffs_1 = np.array([1, 1, 2])
 center_2 = np.array([x_c_2, y_c_2, z_c_2])
 radii_2 = np.array([a_2, b_2, c_2])
-radii_2 = np.array([b_2, a_2, c_2])
 coeffs_2 = np.array([1, 1, 2])
+# Parameter of the potential
 A = 50.0
 eta = 1.0
 
 # Function which generates the perturbation term
 def perturbation(center, radii, coeffs, position, A, eta):
 	isopotential = np.sum(((position - center) / radii) ** (2 * coeffs)) - 1.0 # C(x)
-	disopotential = 2 * coeffs * ((position - center) / radii) ** (2 * coeffs - 1) / radii
+	disopotential = 2 * coeffs * ((position - center) / radii) ** (2 * coeffs - 1) / radii # gradient of C(x)
 	phi = (A * np.exp(- eta * isopotential) * (- eta * disopotential) * isopotential - A * np.exp(- eta * isopotential) * disopotential) / isopotential / isopotential
 	return - phi
 
@@ -163,6 +160,5 @@ plt.plot (center_2[0] + radii_2[0] * np.cos(theta), center_2[1] + radii_2[1] * n
 plt.plot(x_track[:, 0], x_track[:, 1], '-g')
 plt.plot(goal[0], goal[1], '.b')
 plt.xlabel(r'$x_1$')
-plt.ylabel(r'$x_2$')
 plt.axis('equal')
 plt.show()
