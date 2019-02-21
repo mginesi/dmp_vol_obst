@@ -19,9 +19,9 @@ x_plot = np.linspace(-basis/2, basis/2, n_plot_points)
 ellipse_set = np.zeros([4, 2, n_plot_points])
 
 for n in range(4):
-	order = 2 * (n+1)
-	ellipse_set[n][0] = height/2 * np.power(1 - np.power(x_plot/(basis/2), order), 1./order)
-	ellipse_set[n][1] = - height/2 * np.power(1 - np.power(x_plot/(basis/2), order), 1./order)
+    order = 2 * (n+1)
+    ellipse_set[n][0] = height/2 * np.power(1 - np.power(x_plot/(basis/2), order), 1./order)
+    ellipse_set[n][1] = - height/2 * np.power(1 - np.power(x_plot/(basis/2), order), 1./order)
 
 plt.figure(1)
 plt.plot(rectangle_x, rectangle_y, 'r')

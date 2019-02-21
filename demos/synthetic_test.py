@@ -68,27 +68,27 @@ eta = 1.0
 
 # Function which generates the perturbation term
 def perturbation(center, radii, coeffs, position, A, eta):
-	isopotential = np.sum(((position - center) / radii) ** (2 * coeffs)) - 1.0 # C(x)
-	disopotential = 2 * coeffs * ((position - center) / radii) ** (2 * coeffs - 1) / radii # gradient of C(x)
-	phi = (A * np.exp(- eta * isopotential) * (- eta * disopotential) * isopotential - A * np.exp(- eta * isopotential) * disopotential) / isopotential / isopotential
-	return - phi
+    isopotential = np.sum(((position - center) / radii) ** (2 * coeffs)) - 1.0 # C(x)
+    disopotential = 2 * coeffs * ((position - center) / radii) ** (2 * coeffs - 1) / radii # gradient of C(x)
+    phi = (A * np.exp(- eta * isopotential) * (- eta * disopotential) * isopotential - A * np.exp(- eta * isopotential) * disopotential) / isopotential / isopotential
+    return - phi
 
 x_track_s = dmp.x0
 while (not flag):
-	if (dmp.t == 0):
-		dmp.first = True
-	else:
-		dmp.first = False
-	# run and record timestep
-	phi1 = perturbation(center_1, radii_1, coeffs_1, x_track_s, A, eta)
-	phi2 = perturbation(center_2, radii_2, coeffs_2, x_track_s, A, eta)
-	F = phi1 + phi2
-	x_track_s, dx_track_s, ddx_track_s = dmp.step(external_force=F)
-	x_track = np.append(x_track, [x_track_s], axis=0)
-	dx_track = np.append(dx_track, [dx_track_s],axis=0)
-	ddx_track = np.append(ddx_track, [ddx_track_s],axis=0)
-	dmp.t += 1
-	flag = (dmp.t >= dmp.cs.timesteps) & (np.linalg.norm(x_track_s - dmp.goal) / np.linalg.norm(dmp.goal - dmp.x0) <= dmp.tol)
+    if (dmp.t == 0):
+        dmp.first = True
+    else:
+        dmp.first = False
+    # run and record timestep
+    phi1 = perturbation(center_1, radii_1, coeffs_1, x_track_s, A, eta)
+    phi2 = perturbation(center_2, radii_2, coeffs_2, x_track_s, A, eta)
+    F = phi1 + phi2
+    x_track_s, dx_track_s, ddx_track_s = dmp.step(external_force=F)
+    x_track = np.append(x_track, [x_track_s], axis=0)
+    dx_track = np.append(dx_track, [dx_track_s],axis=0)
+    ddx_track = np.append(ddx_track, [ddx_track_s],axis=0)
+    dmp.t += 1
+    flag = (dmp.t >= dmp.cs.timesteps) & (np.linalg.norm(x_track_s - dmp.goal) / np.linalg.norm(dmp.goal - dmp.x0) <= dmp.tol)
 
 ## Figure with subplots
 

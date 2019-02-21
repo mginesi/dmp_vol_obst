@@ -74,18 +74,18 @@ eta = 1
 obst_volume_1 = obstacle_ellipse.Obstacle_Ellipse(n_dim = 2, n = 1, center = center_1, axis = axis_1)
 
 while (not flag):
-	if (dmp.t == 0):
-		dmp.first = True
-	else:
-		dmp.first = False
-	# run and record timestep
-	F = (obst_volume_1.compute_forcing_term(x_track_s, A, eta))
-	x_track_s, dx_track_s, ddx_track_s = dmp.step(external_force=F)
-	x_track = np.append(x_track, [x_track_s], axis=0)
-	dx_track = np.append(dx_track, [dx_track_s],axis=0)
-	ddx_track = np.append(ddx_track, [ddx_track_s],axis=0)
-	dmp.t += 1
-	flag = (dmp.t >= dmp.cs.timesteps) & (np.linalg.norm(x_track_s - dmp.goal) / np.linalg.norm(dmp.goal - dmp.x0) <= dmp.tol)
+    if (dmp.t == 0):
+        dmp.first = True
+    else:
+        dmp.first = False
+    # run and record timestep
+    F = (obst_volume_1.compute_forcing_term(x_track_s, A, eta))
+    x_track_s, dx_track_s, ddx_track_s = dmp.step(external_force=F)
+    x_track = np.append(x_track, [x_track_s], axis=0)
+    dx_track = np.append(dx_track, [dx_track_s],axis=0)
+    ddx_track = np.append(ddx_track, [ddx_track_s],axis=0)
+    dmp.t += 1
+    flag = (dmp.t >= dmp.cs.timesteps) & (np.linalg.norm(x_track_s - dmp.goal) / np.linalg.norm(dmp.goal - dmp.x0) <= dmp.tol)
 fig = plt.figure(1)
 plt.clf()
 plt.figure(1, figsize=(6,6))
@@ -112,28 +112,28 @@ t_1 = np.linspace(0., np.pi * 2., num_obst_1)
 obst_list_1 = []
 obst_list_2 = []
 for n in range(num_obst_1):
-	obst = obstacle.obstacle()
-	obst.def_obstacle (x_obst = np.array([x_c_1 + a_1*np.cos(t_1[n]), y_c_1 + b_1*np.sin(t_1[n])]), dx_obst = np.zeros(2))
-	obst_list_1.append(obst)
+    obst = obstacle.obstacle()
+    obst.def_obstacle (x_obst = np.array([x_c_1 + a_1*np.cos(t_1[n]), y_c_1 + b_1*np.sin(t_1[n])]), dx_obst = np.zeros(2))
+    obst_list_1.append(obst)
 
 while (not flag):
-	if (dmp.t == 0):
-		dmp.first = True
-	else:
-		dmp.first = False
-	# run and record timestep
-	F_1 = np.zeros([2])
-	F_2 = np.zeros([2])
-	for n in range(num_obst_1):
-		f_n = obst_list_1[n].gen_external_force(dmp.x, dmp.dx, dmp.goal, n_dim = 2)
-		F_1 += f_n
-	F = F_1
-	x_track_s, dx_track_s, ddx_track_s = dmp.step(external_force=F)
-	x_track = np.append(x_track, [x_track_s], axis=0)
-	dx_track = np.append(dx_track, [dx_track_s],axis=0)
-	ddx_track = np.append(ddx_track, [ddx_track_s],axis=0)
-	dmp.t += 1
-	flag = (dmp.t >= dmp.cs.timesteps) & (np.linalg.norm(x_track_s - dmp.goal) / np.linalg.norm(dmp.goal - dmp.x0) <= dmp.tol)
+    if (dmp.t == 0):
+        dmp.first = True
+    else:
+        dmp.first = False
+    # run and record timestep
+    F_1 = np.zeros([2])
+    F_2 = np.zeros([2])
+    for n in range(num_obst_1):
+        f_n = obst_list_1[n].gen_external_force(dmp.x, dmp.dx, dmp.goal, n_dim = 2)
+        F_1 += f_n
+    F = F_1
+    x_track_s, dx_track_s, ddx_track_s = dmp.step(external_force=F)
+    x_track = np.append(x_track, [x_track_s], axis=0)
+    dx_track = np.append(dx_track, [dx_track_s],axis=0)
+    ddx_track = np.append(ddx_track, [ddx_track_s],axis=0)
+    dmp.t += 1
+    flag = (dmp.t >= dmp.cs.timesteps) & (np.linalg.norm(x_track_s - dmp.goal) / np.linalg.norm(dmp.goal - dmp.x0) <= dmp.tol)
 plt.plot(x_track[:,0], x_track[:,1], color = 'orange', linestyle = '-.', lw=2, label = 'with obstacle')
 x_plot_1 = x_c_1 + a_1*np.cos(t_1)
 y_plot_1 = y_c_1 + b_1 * np.sin(t_1)
