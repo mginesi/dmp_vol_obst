@@ -140,5 +140,7 @@ plt.plot (x_plot_1, y_plot_1, ':r', lw=2, label = 'obstacle')
 plt.xlabel(r'$x_1$',fontsize=14)
 plt.ylabel(r'$x_2$',fontsize=14)
 plt.axis('equal')
+plt.text(dmp.x0[0]-0.05, dmp.x0[1]-0.05, r'$\mathbf{x}_0$', fontsize = 16)
+plt.text(dmp.goal[0]+0.01, dmp.goal[1]-0.05, r'$\mathbf{g}$', fontsize = 16)
 
 plt.show()
