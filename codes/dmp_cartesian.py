@@ -27,19 +27,20 @@ from exponential_integration import exp_eul_step
 
 class DMPs_cartesian(object):
     """
-    Implementation of discrete dxnamic Movement Primitives in cartesian space,as
+    Implementation of discrete Dynamic Movement Primitives in cartesian space,as
     described in
     [1] Park, D. H., Hoffmann, H., Pastor, P., & Schaal, S. (2008, December).
-    Movement reproduction and obstacle avoidance with dxnamic movement primitives
+    Movement reproduction and obstacle avoidance with dynamic movement primitives
     and potential fields. In Humanoid Robots, 2008. Humanoids 2008. 8th IEEE-RAS
     International Conference on (pp. 91-98). IEEE.
     [2] Hoffmann, H., Pastor, P., Park, D. H., & Schaal, S. (2009, May).
-    Biologically-inspired dxnamical systems for movement generation: automatic
+    Biologically-inspired dynamical systems for movement generation: automatic
     real-time goal adaptation and obstacle avoidance. In Robotics and Automation,
     2009. ICRA'09. IEEE International Conference on (pp. 2587-2592). IEEE.
     """
 
-    def __init__(self, n_dmps = 3, n_bfs = 50, dt = .01, x0 = None, goal = None, T = 1., K = None, D = None, tol = 0.1, alpha_s = 1., **kwargs):
+    def __init__(self, n_dmps = 3, n_bfs = 50, dt = .01, x0 = None, goal = None,
+        T = 1., K = None, D = None, tol = 0.1, alpha_s = 1., **kwargs):
         """
         n_dmps int   : number of dynamic movement primitives (i.e. dimensions)
         n_bfs int    : number of basis functions per DMP (actually, they will be one more)
@@ -58,8 +59,13 @@ class DMPs_cartesian(object):
         self.n_dmps = n_dmps
         self.n_bfs = n_bfs
         # Default values give as in [2]
-        self.K = np.ones(n_dmps) * 150. if K is None else K
-        self.D = 2 * np.sqrt(self.K) if D is None else D
+        if K is None:
+            K = 1050.
+        if np.isscalar(K):
+            K = np.ones(self.n_dmps) * K
+        self.K = K
+        if D is None:
+            self.D = 2 * np.sqrt(self.K)
         # Create the matrix of the linear component of the problem
         self.linear_part = np.zeros([2 * self.n_dmps, 2 * self.n_dmps])
         for d in range(n_dmps):
@@ -176,44 +182,49 @@ class DMPs_cartesian(object):
 
     def imitate_path(self, x_des, t_des = None):
         """
-        Takes in a desired trajectory and generates the set of
-        system parameters that best realize this path.
-        x_des list/array: the desired trajectories of each DMP
-                          should be shaped [n_dmps, run_time]
+        Takes in a desired trajectory and generates the set of system parameters
+        that best realize this path.
+          x_des array shaped num_timesteps x n_dmps
+          t_des 1D array of num_timesteps component
         """
-        # Set initial state and goal
-        if x_des.ndim == 1:
-            x_des = x_des.reshape(1, len(x_des))
-        self.x0 = x_des[:, 0].copy()
-        self.goal = self.gen_goal(x_des)
-        self.x_des = x_des.copy()
-        # Generate function to interpolate the desired trajectory
-        path = np.zeros((self.n_dmps, self.cs.timesteps))
+
+        ## Set initial state and goal
+        self.x0 = x_des[0].copy()
+        self.goal = x_des[-1].copy()
+
+        ## Set t_span
         if t_des is None:
-            t_des = np.linspace(0, self.cs.run_time, x_des.shape[1])
+            # Default value for t_des
+            t_des = np.linspace(0, self.cs.run_time, x_des.shape[0])
         else:
+            # Warp time to start from zero and end up to T
             t_des -= t_des[0]
             t_des /= t_des[-1]
             t_des *= self.cs.run_time
         time = np.linspace(0., self.cs.run_time, self.cs.timesteps)
-        for d in range(self.n_dmps):
-            # Piecewise linear interpolation
-            path_gen = scipy.interpolate.interp1d(t_des, x_des[d]) # this is a function
-            path[d, :] = path_gen(time)
-        x_des = path
-        # Second order estimates of the derivatives (the last non centered, all the
-        # others centered)
+
+        ## Piecewise linear interpolation
+        # Interpolation function
+        path_gen = scipy.interpolate.interp1d(t_des, x_des.transpose())
+        # Evaluation of the interpolant
+        path = path_gen(time)
+        x_des = path.transpose()
+
+        ## Second order estimates of the derivatives
+        ## (the last non centered, all the others centered)
         [D1, D2] = self.compute_derivative_matrices()
-        dx_des = np.transpose(np.dot(D1, np.transpose(x_des)))
-        ddx_des = np.transpose(np.dot(D2, np.transpose(x_des)))
-        f_target = np.zeros([self.n_dmps, self.cs.timesteps])
-        # Find the force required to move along this trajectory
+        dx_des = np.dot(D1, x_des)
+        ddx_des = np.dot(D2, x_des)
+
+        ## Find the force required to move along this trajectory
         s_track = self.cs.rollout()
-        for d in range(self.n_dmps):
-            f_target[d, :] = ddx_des[d, :] / self.K[d] - (self.goal[d] - x_des[d, :]) + self.D[d] / self.K[d] * dx_des[d, :] + (self.goal[d] - self.x0[d]) * s_track
+        f_target = ((ddx_des / self.K - (self.goal - x_des) +
+            self.D / self.K * dx_des).transpose() +
+            np.reshape((self.goal - self.x0), [self.n_dmps, 1]) * s_track)
+        # Efficiently generate weights to realize f_target
+        # (only if not called by paths_regression)
         self.gen_weights(f_target)
         self.reset_state()
-        self.learned_position = self.goal - self.x0
         return f_target
 
     def reset_state(self):
