@@ -17,7 +17,7 @@ import pdb
 
 import dmp_cartesian
 import obstacle_ellipse
-import obstacle
+import point_obstacle
 
 """
 Here we create the trajectory to learn
@@ -31,10 +31,10 @@ a_y = 1. / np.pi
 b_y = 1.
 x = a_x * t * np.cos(b_x*t)
 y = a_y * t * np.sin(b_y*t)
-x_des = np.ndarray([2, t_steps])
-x_des[0,:] = x
-x_des[1,:] = y
-x_des -= x_des[:, 0][:, None]
+x_des = np.ndarray([t_steps, 2])
+x_des[:, 0] = x
+x_des[:, 1] = y
+x_des -= x_des[0]
 # Learning of the trajectory
 dmp = dmp_cartesian.DMPs_cartesian(n_dmps=2, n_bfs=40, K = 1050 * np.ones(2),dt = .01, alpha_s = 3.)
 dmp.imitate_path(x_des=x_des)
@@ -112,8 +112,7 @@ t_1 = np.linspace(0., np.pi * 2., num_obst_1)
 obst_list_1 = []
 obst_list_2 = []
 for n in range(num_obst_1):
-    obst = obstacle.obstacle()
-    obst.def_obstacle (x_obst = np.array([x_c_1 + a_1*np.cos(t_1[n]), y_c_1 + b_1*np.sin(t_1[n])]), dx_obst = np.zeros(2))
+    obst = point_obstacle.obstacle(x_obst = np.array([x_c_1 + a_1*np.cos(t_1[n]), y_c_1 + b_1*np.sin(t_1[n])]), dx_obst = np.zeros(2))
     obst_list_1.append(obst)
 
 while (not flag):
@@ -125,7 +124,7 @@ while (not flag):
     F_1 = np.zeros([2])
     F_2 = np.zeros([2])
     for n in range(num_obst_1):
-        f_n = obst_list_1[n].gen_external_force(dmp.x, dmp.dx, dmp.goal, n_dim = 2)
+        f_n = obst_list_1[n].gen_external_force(dmp.x, dmp.dx, dmp.goal)
         F_1 += f_n
     F = F_1
     x_track_s, dx_track_s, ddx_track_s = dmp.step(external_force=F)
