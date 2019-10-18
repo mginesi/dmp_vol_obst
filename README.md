@@ -33,6 +33,41 @@ In particular:
 * _synthetic_test.py_ tests our approach considering the volume occupied by the end-effector of the robot;
 * _two_obstacles.py_ tests both the steering angle method [2] and our proposed approach with two obstacles;
 
+## Theory: quick recall ##
+
+_Dynamic Movement Primitives_ are a framework for trajectory learning. It is based on a second order differential equation of spring-mass-damper type:
+\[
+\begin{cases}
+    \tau \dot{\mathbf{v}} = \mathbf{K} (\mathbf{g} - \mathbf{x}) - \mathbf{D} \mathbf{v} - \mathbf{K} (\mathbf{g} - \mathbf{x}_0) s + \mathbf{K} \mathbf{f}(s) \\
+    \tau \dot{\mathbf{x}} = \mathbf{v}
+\end{cases},
+\]
+
+where $ \mathbf{x}, \mathbf{v} \in \mathbb{R}^d $ are position and velocity of the system; $\mathbf{x}_0 , \mathbf{g} \in \mathbb{R}^d $ are initial and goal position, respectively; $\mathbf{K}, \mathbf{D} \in \mathbb{R}^{d \times d}$ are diagonal matrices, representing the elastic and damping terms, respectively; $\mathbf{f} (s) \in \mathbb{R}^d $ is the "forcing term"; $\tau \in \mathbb{R}^+$ is a parameter used to make the execution faster or slower. Parameter $s \in \mathbb{R}$ is a re-parametrization of time, governed by the _canonical system_
+\[ \tau \dot{s} = -\alpha s, \quad \alpha \in \mathbb{R}^+ . \]
+
+### Learning Phase ###
+
+During the learning phase, a desired curve $ \tilde\mathbf{x}(t) $ is shown. This permit to compute the forcing term $\mathbf{f}(s)$. Thus, the forcing term is approximated using Gaussian Radial Basis functions $ \{ \psi_i(s) \}_{i=0,1,\ldots, N} $ as
+\[ \mathbf{f}(s) = \frac{ \sum_{i=0}^N \omega_i \psi_i(s) }{ \sum_{i=0}^N \psi_i(s) } s , \]
+with $ \omega_i \in \mathbb{R} $, $ i=0,1,\ldots, N. $
+
+### Execution Phase ###
+
+Once the _weights_ $\omega_i$ have been learned, the forcing term can be computed. The dynamical system can be integrated changing $\mathbf{x}_0, \mathbf{g}$, and $\tau$, thus being able to generalize the trajectory changing initial and final positions, and execution time.
+
+### Obstacle Avoidance ###
+
+To avoid obstacles, a _copupling term_ $\bm{\varphi} (\mathbf{x}, \mathbf{v})$ is added to the first equation of the DMP system.
+In our approach, we use _Superquadric Potential Functions_. An isopotential
+\[ C(\mathbf{x}) = \left( \left( \frac{x_1}{f_1(\mathbf{x})} \right) ^ {2n} + \left( \frac{x_2}{f_2(\mathbf{x})} \right) ^ {2n} \right) ^ \frac{2m}{2n} + \left( \frac{x_3}{f_3(\mathbf{x})} \right) ^ {2m} - 1 \]
+that vanishes on the boundary of the obstacle is created by setting parameters $m,n \in \mathbb{N}$ and functions $f_i(\mathbf{x})$.
+Then, a potential is created as
+\[ U(\mathbf{x}) = \frac{A \exp (-\eta C(\mathbf{x})) }{ C(\mathbf{x}) }, \]
+with $ A, \eta \in \mathbb{R}^+ $.
+Finally, the coupling term is computed as
+\[ \bm{\varphi} (\mathbf{x}, \mathbf{v}) \equiv \bm{\varphi} (\mathbf{x}) = - \nabla_\mathbf{x} U(\mathbf{x}) . \]
+
 ## References ##
 
 [1] https://github.com/minillinim/ellipsoid
