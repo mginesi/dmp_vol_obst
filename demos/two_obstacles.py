@@ -15,9 +15,7 @@ rc('text', usetex=True)
 
 import pdb
 
-import dmp_cartesian
-import obstacle_ellipse
-import point_obstacle
+from dmp import dmp_cartesian, obstacle_ellipse, point_obstacle
 
 """
 Here we create the trajectory to learn

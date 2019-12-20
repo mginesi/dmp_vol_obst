@@ -17,7 +17,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 import numpy as np
-from dmp_cartesian import DMPs_cartesian
+from dmp.dmp_cartesian import DMPs_cartesian
 
 class obstacle(DMPs_cartesian):
 

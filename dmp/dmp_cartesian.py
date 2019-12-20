@@ -22,8 +22,8 @@ import scipy.sparse as sparse
 import scipy.interpolate
 import pdb
 
-from cs import CanonicalSystem
-from exponential_integration import exp_eul_step
+from dmp.cs import CanonicalSystem
+from dmp.exponential_integration import exp_eul_step
 
 class DMPs_cartesian(object):
     """

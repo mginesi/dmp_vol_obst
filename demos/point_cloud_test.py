@@ -18,9 +18,9 @@ import sys
 sys.path.insert(0, 'codes/')
 sys.path.insert(0, '../codes/')
 
-from dmp_cartesian import DMPs_cartesian as dyn_mp
-from obstacle_ellipse import Obstacle_Ellipse as obst
-from ellipsoid import EllipsoidTool
+from dmp.dmp_cartesian import DMPs_cartesian as dyn_mp
+from dmp.obstacle_ellipse import Obstacle_Ellipse as obst
+from dmp.ellipsoid import EllipsoidTool
 ET = EllipsoidTool()
 
 # Initializing the DMP
