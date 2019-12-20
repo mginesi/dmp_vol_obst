@@ -6,6 +6,20 @@ In particular, this repository contains all the synthetic tests done for the wor
 
 _Ginesi M., Meli D., Calanca A., Dall'Alba D., Sansonetto N., and Fiorini P._; **Dynamic Movement Primitives: Volumetric Obstacle Avoidance**
 
+## Install ##
+
+The package can be installed by running
+
+```
+pip install -e .
+```
+
+or
+
+```
+pip3 install -e .
+```
+
 ## Repository Contents ##
 
 The repository contains two folders: _codes_ and _demos_.
