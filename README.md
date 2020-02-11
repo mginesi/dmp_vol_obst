@@ -2,9 +2,30 @@
 
 This repository contains the implementation of Dynamic Movement Primitives (DMPs), together with two different approaches to obstacle avoidance, in Python 3.5.
 
-In particular, this repository contains all the synthetic tests done for the work (currently under revision):
+In particular, this repository contains all the synthetic tests done for the work:
 
-_Ginesi M., Meli D., Calanca A., Dall'Alba D., Sansonetto N., and Fiorini P._; **Dynamic Movement Primitives: Volumetric Obstacle Avoidance**
+_M. Ginesi, D. Meli, A. Calanca, D. Dall'Alba, N. Sansonetto and P. Fiorini_, **Dynamic Movement Primitives: Volumetric Obstacle Avoidance,** 2019 19th International Conference on Advanced Robotics (ICAR), Belo Horizonte, Brazil, 2019, pp. 234-239.
+
+doi: 10.1109/ICAR46387.2019.8981552
+
+URL: http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8981552&isnumber=8981543
+
+### bibtex ###
+
+`
+@INPROCEEDINGS{8981552,
+author={Ginesi, Michele and Meli, Daniele and Calanca, Andrea and Dall'Alba, Diego and Sansonetto, Nicola and Fiorini, PAolo},
+booktitle={2019 19th International Conference on Advanced Robotics (ICAR)},
+title={Dynamic Movement Primitives: Volumetric Obstacle Avoidance},
+year={2019},
+volume={},
+number={},
+pages={234-239},
+keywords={},
+doi={10.1109/ICAR46387.2019.8981552},
+ISSN={null},
+month={Dec}}
+`
 
 ## Install ##
 
