@@ -24,9 +24,9 @@ dmp.w = np.zeros([dmp.n_dmps, dmp.n_bfs + 1])
 dmp.tol = 1e-02
 x0 = np.array([0.519, -0.327, 0.084])
 goal = np.array([0.614, 0.307, 0.083])
-dmp.x0 = x0
-dmp.goal = goal
-x_track, dx_track, ddx_track = dmp.rollout()
+dmp.x_0 = x0
+dmp.x_goal = goal
+x_track, dx_track, ddx_track, _ = dmp.rollout()
 x_classical = x_track
 # Reset state
 dmp.reset_state()
@@ -39,8 +39,8 @@ dmp.ddx_old = np.zeros(dmp.n_dmps)
 flag = False
 dmp.t = 0
 
-x_track_s = dmp.x0
-x_track[0, :] = dmp.x0
+x_track_s = dmp.x_0
+x_track[0, :] = dmp.x_0
 
 # Obstacles definition
 x_c_1 = 0.512
@@ -73,22 +73,24 @@ def perturbation(center, radii, coeffs, position, A, eta):
     phi = (A * np.exp(- eta * isopotential) * (- eta * disopotential) * isopotential - A * np.exp(- eta * isopotential) * disopotential) / isopotential / isopotential
     return - phi
 
-x_track_s = dmp.x0
+def f_perturb(x, v):
+    phi1 = perturbation(center_1, radii_1, coeffs_1, x, A, eta)
+    phi2 = perturbation(center_2, radii_2, coeffs_2, x, A, eta)
+    return phi1 + phi2
+
+x_track_s = dmp.x_0
 while (not flag):
     if (dmp.t == 0):
         dmp.first = True
     else:
         dmp.first = False
     # run and record timestep
-    phi1 = perturbation(center_1, radii_1, coeffs_1, x_track_s, A, eta)
-    phi2 = perturbation(center_2, radii_2, coeffs_2, x_track_s, A, eta)
-    F = phi1 + phi2
-    x_track_s, dx_track_s, ddx_track_s = dmp.step(external_force=F)
+    x_track_s, dx_track_s, ddx_track_s = dmp.step(external_force=f_perturb)
     x_track = np.append(x_track, [x_track_s], axis=0)
     dx_track = np.append(dx_track, [dx_track_s],axis=0)
     ddx_track = np.append(ddx_track, [ddx_track_s],axis=0)
     dmp.t += 1
-    flag = (dmp.t >= dmp.cs.timesteps) & (np.linalg.norm(x_track_s - dmp.goal) / np.linalg.norm(dmp.goal - dmp.x0) <= dmp.tol)
+    flag = (dmp.t >= dmp.cs.timesteps) & (np.linalg.norm(x_track_s - dmp.x_goal) / np.linalg.norm(dmp.x_goal - dmp.x_0) <= dmp.tol)
 
 ## Figure with subplots
 
