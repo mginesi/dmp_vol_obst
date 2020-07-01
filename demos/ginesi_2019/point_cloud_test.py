@@ -1,5 +1,5 @@
 """
-Ginesi et al 2019, fig 2
+Ginesi et al. 2019, fig 2
 """
 
 import numpy as np
