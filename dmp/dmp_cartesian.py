@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2019 Michele Ginesi
+Copyright (C) 2020 Michele Ginesi
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -27,6 +27,10 @@ from dmp.exponential_integration import exp_eul_step
 from dmp.exponential_integration import phi1
 from dmp.derivative_matrices import compute_D1, compute_D2
 
+# ---------------------------------------------------------------------------- #
+# DMPs in Cartesian Space
+# ---------------------------------------------------------------------------- #
+
 class DMPs_cartesian(object):
     '''
     Implementation of discrete Dynamic Movement Primitives in cartesian space,
@@ -45,8 +49,7 @@ class DMPs_cartesian(object):
 
     def __init__(self,
         n_dmps = 3, n_bfs = 50, dt = 0.01, x_0 = None, x_goal = None, T = 1.0,
-        K = 1050, D = None, w = None, tol = 0.01, alpha_s = 4.0,
-        rescale = None, basis = 'gaussian', **kwargs):
+        K = 1050, D = None, w = None, tol = 0.01, alpha_s = 4.0, basis = 'gaussian', **kwargs):
         '''
         n_dmps int   : number of dynamic movement primitives (i.e. dimensions)
         n_bfs int    : number of basis functions per DMP (actually, they will
@@ -60,13 +63,6 @@ class DMPs_cartesian(object):
         w array      : associated weights
         tol float    : tolerance
         alpha_s float: constant of the Canonical System
-        rescale      : tell which affine transformation use in the Cartesian
-                       component to be make affine invariant, possible values
-                       are:
-                         None: no scalability
-                         'rotodilatation': use rotodilatation
-                         'diagonal': use a diagonal matrix ("old" DMP 
-                            formulation)
         basis string : type of basis functions
         '''
 
@@ -95,7 +91,6 @@ class DMPs_cartesian(object):
             x_goal = np.ones(self.n_dmps)
         self.x_0 = copy.deepcopy(x_0)
         self.x_goal = copy.deepcopy(x_goal)
-        self.rescale = copy.deepcopy(rescale)
         self.basis = copy.deepcopy(basis)
         self.reset_state()
         self.gen_centers()
@@ -277,75 +272,6 @@ class DMPs_cartesian(object):
             self.learned_position = self.x_goal - self.x_0
         return f_target
 
-    def paths_regression(self, traj_set, t_set = None):
-        '''
-        Takes in a set (list) of desired trajectories (with possibly the
-        execution times) and generate the weight which realize the best
-        approximation.
-          each element of traj_set should be shaped num_timesteps x n_dim
-          trajectories
-        '''
-
-        ## Step 1: Generate the set of the forcing terms
-        f_set = np.zeros([len(traj_set), self.n_dmps, self.cs.timesteps])
-        g_new = np.ones(self.n_dmps)
-        for it in range(len(traj_set)):
-            if t_set is None:
-                t_des_tmp = None
-            else:
-                t_des_tmp = t_set[it]
-                t_des_tmp -= t_des_tmp[0]
-                t_des_tmp /= t_des_tmp[-1]
-                t_des_tmp *= self.cs.run_time
-
-            # Alignment of the trajectory so that
-            # x_0 = [0; 0; ...; 0] and g = [1; 1; ...; 1].
-            x_des_tmp = copy.deepcopy(traj_set[it])
-            x_des_tmp -= x_des_tmp[0] # translation to x_0 = 0
-            g_old = x_des_tmp[-1] # original x_goal position
-            R = roto_dilatation(g_old, g_new) # rotodilatation
-
-            # Rescaled and rotated trajectory
-            x_des_tmp = np.dot(x_des_tmp, np.transpose(R))
-
-            # Learning of the forcing term for the particular trajectory
-            f_tmp = self.imitate_path(x_des = x_des_tmp, t_des = t_des_tmp,
-                g_w = False, add_force = None)
-            f_set[it, :, :] = f_tmp.copy() # add the new forcing term to the set
-
-        ## Step 2: Learning of the weights using linear regression
-        self.w = np.zeros([self.n_dmps, self.n_bfs + 1])
-        s_track = self.cs.rollout()
-        psi_set = self.gen_psi(s_track)
-        psi_sum = np.sum(psi_set, 0)
-        psi_sum_2 = psi_sum * psi_sum
-        s_track_2 = s_track * s_track
-        A = np.zeros([self.n_bfs + 1, self.n_bfs + 1])
-        for k in range(self.n_bfs + 1):
-            A[k, k] = scipy.integrate.simps(
-                psi_set[k, :] * psi_set[k, :] * s_track_2 / psi_sum_2, s_track)
-            for h in range(k + 1, self.n_bfs + 1):
-                A[h, k] = scipy.integrate.simps(
-                    psi_set[k, :] * psi_set[h, :] * s_track_2 / psi_sum_2,
-                    s_track)
-                A[k, h] = A[h, k].copy()
-        A *= len(traj_set)
-        LU = scipy.linalg.lu_factor(A)
-
-        # The weights are learned dimension by dimension
-        for d in range(self.n_dmps):
-            f_d_set = f_set[:, d, :].copy()
-            # Set up the minimization problem
-            b = np.zeros([self.n_bfs + 1])
-            for k in range(self.n_bfs + 1):
-                b[k] = scipy.integrate.simps(
-                    np.sum(f_d_set * psi_set[k, :] * s_track / psi_sum, 0),
-                    s_track)
-
-            # Solve the minimization problem
-            self.w[d, :] = scipy.linalg.lu_solve(LU, b)
-        self.learned_position = np.ones(self.n_dmps)
-
     def reset_state(self, v0 = None, **kwargs):
         '''
         Reset the system state
@@ -374,22 +300,16 @@ class DMPs_cartesian(object):
         state = np.zeros(2 * self.n_dmps)
         state[range(0, 2*self.n_dmps, 2)] = copy.deepcopy(v0)
         state[range(1, 2*self.n_dmps + 1, 2)] = copy.deepcopy(self.x_0)
-        if self.rescale == 'rotodilatation':
-            M = roto_dilatation(self.learned_position, self.x_goal - self.x_0)
-        elif self.rescale == 'diagonal':
-            M = np.diag((self.x_goal - self.x_0) / self.learned_position)
-        else:
-            M = np.eye(self.n_dmps)
         psi = self.gen_psi(self.cs.s)
         f0 = (np.dot(self.w, psi[:, 0])) / (np.sum(psi[:, 0])) * self.cs.s
-        f0 = np.nan_to_num(np.dot(M, f0))
+        f0 = np.nan_to_num(f0)
         ddx_track = np.array([-self.D * v0 + self.K*f0])
         err = np.linalg.norm(state[range(1, 2*self.n_dmps + 1, 2)] - self.x_goal)
         P = phi1(self.cs.dt * self.linear_part / tau)
         while err > self.tol:
             psi = self.gen_psi(self.cs.s)
             f = (np.dot(self.w, psi[:, 0])) / (np.sum(psi[:, 0])) * self.cs.s
-            f = np.nan_to_num(np.dot(M, f))
+            f = np.nan_to_num(f)
             beta = np.zeros(2 * self.n_dmps)
             beta[range(0, 2*self.n_dmps, 2)] = \
                 self.K * (self.x_goal * (1.0 - self.cs.s) + 
@@ -426,12 +346,6 @@ class DMPs_cartesian(object):
             tols = [1e-03, 1e-06]
         ## Setup
         # Scaling matrix
-        if self.rescale == 'rotodilatation':
-            M = roto_dilatation(self.learned_position, self.x_goal - self.x_0)
-        elif self.rescale == 'diagonal':
-            M = np.diag((self.x_goal - self.x_0) / self.learned_position)
-        else:
-            M = np.eye(self.n_dmps)
         # Coupling term in canonical system
         error_coupling = 1.0 / (1.0 + error)
         alpha_tilde = - self.cs.alpha_s / tau / error_coupling
@@ -445,7 +359,7 @@ class DMPs_cartesian(object):
         def beta_s(s, x, v):
             psi = self.gen_psi(s)
             f = (np.dot(self.w, psi[:, 0])) / (np.sum(psi[:, 0])) * self.cs.s
-            f = np.nan_to_num(np.dot(M, f))
+            f = np.nan_to_num(f)
             out = np.zeros(2 * self.n_dmps)
             out[0::2] = self.K * (self.x_goal * (1.0 - s) + self.x_0 * s + f)
             if external_force is not None:
@@ -482,7 +396,7 @@ class DMPs_cartesian(object):
         self.dx = copy.deepcopy(state[0::2])
         psi = self.gen_psi(self.cs.s)
         f = (np.dot(self.w, psi[:, 0])) / (np.sum(psi[:, 0])) * self.cs.s
-        f = np.nan_to_num(np.dot(M, f))
+        f = np.nan_to_num(f)
         self.ddx = (self.K * (self.x_goal - self.x) - self.D * self.dx \
             - self.K * (self.x_goal - self.x_0) * self.cs.s + self.K * f) / tau
         if external_force is not None:

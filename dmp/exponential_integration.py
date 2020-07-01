@@ -16,7 +16,6 @@ along with this program.    If not, see <http://www.gnu.org/licenses/>.
 """
 
 import numpy as np
-import pdb
 
 def log2(x):
     """
@@ -24,29 +23,29 @@ def log2(x):
         x = f * 2^e
     with 0.5 <= f < 1.
     """
-    sign = 1.
+    sign = 1.0
     f = x
     e = int(0)
     if (x == 0):
-        f = 0.
+        f = 0.0
         e = int(0)
     else:
         if (x < 0):
-            x *= -1.
-            f *= -1.
-            sign = -1.
-        if (x >= 1.):
+            x *= - 1.0
+            f *= - 1.0
+            sign = - 1.0
+        if (x >= 1.0):
             e = int(0)
-            while (f >= 1):
-                f /= 2.
+            while (f >= 1.0):
+                f /= 2.0
                 e += int(1)
         elif (x < 0.5):
             e = int(0)
             while (f < 0.5):
-                f *= 2.
+                f *= 2.0
                 e -= int(1)
         f *= sign
-    return [f, e]
+    return f, e
 
 def phi1(A):
     """
@@ -54,18 +53,23 @@ def phi1(A):
                   exp(z) - 1    +oo    z^j
       phi_1(z) = ------------ = sum ---------
                        z        j=0  (j + 1)!
-    However we will use a Pade' approximation
+    We will use a Pade' approximation
     """
+
     # Scale A by power of two so that its norm is < 0.5
-    [f, e] = log2(np.linalg.norm(A, 1))
-    s = np.min([np.max([0, e+1]), 1023])
+    _, e = log2(np.linalg.norm(A, 1))
+    s = np.min([np.max([0, e + 1]), 1023])
+
     # A power of 2 is representable exactly in binary arithmetic, thus we do not
     # introduce round errors
-    A = A / (2 ** s)
+    A = A / (2.0 ** s)
     ID = np.eye(np.shape(A)[0])
+
     # Pade' coefficients
-    n = np.array([1,1/30,1/30,1/936,1/4680,1/171600,1/3603600,1/259459200])
-    d = np.array([1,-7/15,1/10,-1/78,1/936,-1/17160,1/514800,-1/32432400])
+    n = np.array([1.0, 1.0 / 30, 1.0 / 30, 1.0 / 936, 1.0 / 4680, 1.0 / 171600,
+        1.0 / 3603600, 1.0 / 259459200])
+    d = np.array([1.0, - 7.0 / 15,  1.0 / 10, - 1.0 / 78, 1.0 / 936, -1/17160,
+        1/514800, - 1.0 / 32432400])
     q = np.size(n)
     N = n[0] * ID
     D = d[0] * ID
@@ -75,10 +79,11 @@ def phi1(A):
         N = N + n[ii] * X
         D = D + d[ii] * X
     N = np.dot(np.linalg.inv(D), N)
+
     # Undo scaling by repeating squaring
     phi0 = np.dot(A, N) + ID # will be the exponent
     for ii in range(s):
-        N = np.dot((phi0 + ID), N/2)
+        N = np.dot((phi0 + ID), N / 2.0)
         phi0 = np.dot(phi0, phi0)
     return N
 

@@ -1,4 +1,4 @@
-"""
+'''
 Copyright (C) 2018 Michele Ginesi
 Copyright (C) 2018 Daniele Meli
 Copyright (C) 2013 Travis DeWolf
@@ -14,17 +14,19 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.    See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.    If not, see <http://www.gnu.org/licenses/>.
-"""
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+'''
 
 import numpy as np
 
 class CanonicalSystem():
-    """
+    '''
     Implementation of the canonical dynamical system
-    """
+    '''
 
-    def __init__(self, dt, alpha_s = 1., run_time = 1., **kwargs):
+    def __init__(self, dt, alpha_s = 4.0, run_time = 1.0, **kwargs):
+
+        # Parameter setting
         self.alpha_s = alpha_s
         self.run_time = run_time
         self.dt = dt
@@ -32,15 +34,17 @@ class CanonicalSystem():
         self.reset_state()
 
     def reset_state(self):
-        """
+        '''
         Reset the system state
-        """
+        '''
+
         self.s = 1.0
 
-    def rollout(self, tau = 1., **kwargs):
-        """
+    def rollout(self, tau = 1.0, **kwargs):
+        '''
         Generate s.
-        """
+        '''
+
         timesteps = int(self.timesteps / tau)
         s_track = np.zeros(timesteps)
         self.reset_state()
@@ -49,13 +53,15 @@ class CanonicalSystem():
             self.step(tau = tau)
         return s_track
 
-    def step(self, tau = 1., error_coupling = 1., **kwargs):
-        """
-        Generate a single step of x for discrete
-        (potentially closed) loop movements.
-        Decaying from 1 to 0 according to
-          tau ds = - alpha_s s / error_coupling
-        """
-        const = - self.alpha_s / tau / (error_coupling)
+    def step(self, tau = 1.0, error_coupling = 1.0, **kwargs):
+        '''
+        Generate a single step of s.
+          tau float
+          error_coupling float
+        '''
+
+        # Since the canonical system is linear, we use an exponential method
+        # (which is exact)
+        const = - self.alpha_s / tau / error_coupling
         self.s *= np.exp(const * self.dt)
         return self.s

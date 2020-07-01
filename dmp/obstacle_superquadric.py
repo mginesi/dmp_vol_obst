@@ -83,3 +83,127 @@ class Obstacle_Static():
             K += ((x[i] - self.center[i]) / self.axis[i]) ** (2 * self.coeffs[i])
         K -= 1
         return K
+
+class Obstacle_Dynamic():
+    '''
+    Implementation of an obstacle for Dynamic Movement Primitives written as a
+    general n-ellipsoid
+      / x - x_c \ 2m     / y - y_c \ 2n      / z - z_c \ 2p
+      |---------|     +  |---------|     +   |---------|     =  1
+      \    a    /        \    b    /         \    c    /
+    The difference between this formulation and the previous one is that the
+    repulsive term in this case deals also with the relative velocity between
+    obstacle and particle.
+    '''
+
+    def __init__(self, center = np.zeros(2), axis = np.ones(2),
+        coeffs = np.ones(2), lmbda = 1.0, beta = 1.0, eta = 1.0, **kwargs):
+        '''
+        center float  : array containing the coordinates of the center of the
+                        ellipsoid
+        axis float    : array containing the lengths of the ais of the
+                        ellipsoid
+        coeffs float  : array containing quantities m, n, and p
+        lmbda float   : coefficient of the potential
+        beta float    : coefficient of the potential
+        '''
+        self.center = copy.deepcopy(center)
+        self.axis = copy.deepcopy(axis)
+        self.coeffs = copy.deepcopy(coeffs)
+        self.lmbda = copy.deepcopy(lmbda)
+        self.beta = copy.deepcopy(beta)
+        self.n_dim = np.size(self.axis)
+        self.eta = copy.deepcopy(eta)
+        return
+
+    def compute_cos_theta(self, x, v):
+        nabla = self.compute_grad_isopot(x)
+        cos_theta = np.dot(nabla, v) / np.linalg.norm(v) / np.linalg.norm(nabla)
+        theta = np.nan_to_num(np.arccos(cos_theta))
+        return [cos_theta, theta]
+
+    def gen_external_force(self, x, v):
+        '''
+        Compute the forcing term
+         - nabla_x U(x, v)
+        '''
+        # Computing the necessary quantities
+        if np.linalg.norm(v) < 1e-15:
+            phi = np.zeros(self.n_dim)
+        else:
+            C_x = self.compute_isopotential(x)
+            [cos_theta, theta] = self.compute_cos_theta(x, v)
+            nabla_C = self.compute_grad_isopot(x)
+            norm_v = np.linalg.norm(v)
+            norm_nabla_C = np.linalg.norm(nabla_C)
+            nabla_dot_p = 2.0 * self.coeffs * (2.0 * self.coeffs - 1.0) * \
+                (x - self.center) ** (2.0 * self.coeffs - 2.0) * v / \
+                self.axis ** (2.0 * self.coeffs)
+            nabla_norm_nabla_C = 4.0 * self.coeffs ** 2.0 * \
+                (2.0 * self.coeffs - 1.0) * \
+                (x - self.center) ** (4.0 * self.coeffs - 3.0) / \
+                self.axis ** (4.0 * self.coeffs)
+            nabla_norm_nabla_C /= norm_nabla_C
+            nabla_cos = nabla_dot_p * norm_nabla_C - \
+                np.dot(nabla_C, v) * nabla_norm_nabla_C
+            nabla_cos /= norm_v * norm_nabla_C * norm_nabla_C
+
+            phi = - self.lmbda * norm_v * (-cos_theta) ** (self.beta - 1.0) * \
+                C_x ** (- self.eta) * \
+                (- self.beta * nabla_cos + cos_theta / C_x * nabla_C)
+            phi[theta < np.pi / 2.0] = 0.0
+        return phi
+
+    def compute_grad_isopot(self, x):
+        grad = np.zeros(self.n_dim)
+        for _i in range(self.n_dim):
+            grad[_i] = 2.0 * self.coeffs[_i] * \
+                (x[_i] - self.center[_i]) ** (2.0 * self.coeffs[_i] - 1.0) / \
+                self.axis[_i] ** (2.0 * self.coeffs[_i])
+        return grad
+
+    def compute_nabla_dot_prod(self, x, v):
+        '''
+        Compute the gradient of the dot product between velocity and
+        isopotential.
+        '''
+        nabla = np.zeros(self.n_dim)
+        for _i in range(self.n_dim):
+            nabla[_i] = 2.0 * self.coeffs[_i] * (2.0 * self.coeffs[_i] - 1.0) * \
+                (x[_i] - self.center[_i]) ** (2.0 * self.coeffs[_i] - 2.0) * \
+                v[_i] / self.axis[_i] ** (2.0 * self.coeffs[_i])
+        return nabla
+
+    def compute_nabla_norm(self, x):
+        '''
+        Compute the gradient of the norm of the gradient of the isopotential.
+        '''
+        norm_nabla = np.linalg.norm(self.compute_grad_isopot(x))
+        nabla = np.zeros(self.n_dim)
+        for _i in range(self.n_dim):
+            nabla[_i] = 4.0 * self.coeffs[_i] * self.coeffs[_i] * \
+                (2.0 * self.coeffs[_i] - 1.0) * \
+                (x[_i] - self.center[_i]) ** (4.0 * self.coeffs[_i] - 3.0) / \
+                self.axis[_i] ** (4.0 * self.coeffs[_i])
+        return nabla / norm_nabla
+
+    def compute_potential(self, x, v):
+        [cos_theta, theta] = self.compute_cos_theta(x, v)
+        isopot = self.compute_isopotential(x)
+        potential = self.lmbda * (- cos_theta) ** self.beta * \
+            np.linalg.norm(v) / isopot
+        potential[theta < np.pi / 2.0] = 0.0
+        return potential
+
+    def compute_isopotential(self, x):
+        '''
+        Compute the isopotential of the obstacle
+                / x - x_c \ 2n     / y - y_c \ 2n      / z - z_c \ 2n
+          K  =  |---------|     +  |---------|     +   |---------|     -  1
+                \    a    /        \    b    /         \    c    /
+        '''
+        K = 0.
+        for i in range(self.n_dim):
+            K += ((x[i] - self.center[i]) / self.axis[i]) ** (2 * self.coeffs[i])
+        K -= 1
+        return K
