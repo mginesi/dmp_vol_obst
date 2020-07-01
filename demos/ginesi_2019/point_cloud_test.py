@@ -1,3 +1,7 @@
+"""
+Ginesi et al 2019, fig 2
+"""
+
 import numpy as np
 from scipy.interpolate import interp1d
 from scipy.integrate import simps
@@ -19,7 +23,7 @@ sys.path.insert(0, 'codes/')
 sys.path.insert(0, '../codes/')
 
 from dmp.dmp_cartesian import DMPs_cartesian as dyn_mp
-from dmp.obstacle_ellipse import Obstacle_Ellipse as obst
+from dmp.obstacle_superquadric import Obstacle_Static as obst
 from dmp.ellipsoid import EllipsoidTool
 ET = EllipsoidTool()
 

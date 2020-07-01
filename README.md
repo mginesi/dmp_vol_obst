@@ -1,8 +1,8 @@
 # README #
 
-This repository contains the implementation of Dynamic Movement Primitives (DMPs), together with two different approaches to obstacle avoidance, in Python 3.5.
+This repository contains the implementation of Dynamic Movement Primitives (DMPs), together with different approaches to obstacle avoidance, in Python 3.5.
 
-In particular, this repository contains all the synthetic tests done for the work:
+In particular, this repository contains all the synthetic tests done for the works:
 
 _M. Ginesi, D. Meli, A. Calanca, D. Dall'Alba, N. Sansonetto and P. Fiorini_, **Dynamic Movement Primitives: Volumetric Obstacle Avoidance,** 2019 19th International Conference on Advanced Robotics (ICAR), Belo Horizonte, Brazil, 2019, pp. 234-239.
 
@@ -26,6 +26,10 @@ doi={10.1109/ICAR46387.2019.8981552},
 ISSN={null},
 month={Dec}}
 `
+
+and the work, currently under revision,
+
+_M. Ginesi, D. Meli, A. Roberti, N. Sansonetto and P. Fiorini_, **Dynamic Movement Primitives: Volumetric ObstacleAvoidance Using Dynamic Potential Functions**
 
 ## Install ##
 
@@ -53,20 +57,14 @@ In particular:
 * _dmp_cartesian.py_ is the class that generates and handle the DMP, able to handle both the learning of the weights given a trajectory and to execute a trajectory given the set of weights;
 * _ellipsoid.py_ implements the method using to extract the minimum volume enclosing ellipsoid algorithm [1];
 * _exponential_integration.py_ contains the functions needed to perform the numerical integration method "Exponential Euler";
-* _obstacle.py_ is the class which implements obstacle avoidance for point-like obstacles using the method presented in [2];
-* _obstacle_ellipse.py_ is the class which implements volumentric obstacle avoidance for ellipses (2 dimensions) and ellipsoids (3 dimensions)
+* _point_obstacle.py_ is the class which implements obstacle avoidance for point-like obstacles using the methods presented in [2] and [3];
+* _obstacle_superquadric.py_ is the class which implements volumetric obstacle avoidance for ellipses (2 dimensions) and ellipsoids (3 dimensions) using both static (for our first work) and dynamic (for our second work) potential functions
 
 ### The _demos_ folder ###
 
-The _demos_ folder contains all the scripts performing the tests proposed in our work.
-In particular:
-* _one_obstacle.py_ test both the steering angle method [2] and our proposed approach are with a single obstacle;
-* _plot_ellipsoid_to_rectangle.py_ shows how a rectangle can be approximated using an $n$-ellipsoid
-* _point_cloud_test.py_ tests the computational times between:
-* * using each point of a point cloud as obstacle,
-* * extract the minimum volume enclosing ellipsoid and using it as a single volumetric obstacle;
-* _synthetic_test.py_ tests our approach considering the volume occupied by the end-effector of the robot;
-* _two_obstacles.py_ tests both the steering angle method [2] and our proposed approach with two obstacles;
+The _demos_ folder contains all the scripts performing the tests proposed in our works.
+the folder contains two sub-folders, one for our work with static potentials, and one fo the dynamic potentials.
+See the comments at the beginning of the code to associate the test to the figure in the paper
 
 ## Theory: quick recall ##
 
