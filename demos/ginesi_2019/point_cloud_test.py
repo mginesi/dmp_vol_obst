@@ -17,11 +17,6 @@ rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 #rc('font',**{'family':'serif','serif':['Palatino']})
 rc('text', usetex=True)
 
-# To use the codes in the main folder
-import sys
-sys.path.insert(0, 'codes/')
-sys.path.insert(0, '../codes/')
-
 from dmp.dmp_cartesian import DMPs_cartesian as dyn_mp
 from dmp.obstacle_superquadric import Obstacle_Static as obst
 from dmp.ellipsoid import EllipsoidTool
@@ -193,5 +188,7 @@ plt.figure()
 plt.loglog(range_n_p, time_vol_obst, 'ob--', lw = lw, markersize = ms, label = 'Volumetric computing the ellipse')
 plt.loglog(range_n_p, time_vol_obst_no_ellipse, '^g--', lw = lw, markersize = ms, label = 'Volumetric not computing the ellipse')
 plt.loglog(range_n_p, time_point_obst, '*r--', lw = lw, markersize = ms, label = 'Point sum')
+plt.xlabel('number of points')
+plt.ylabel('time [sec]')
 plt.legend(loc = 'best')
 plt.show()

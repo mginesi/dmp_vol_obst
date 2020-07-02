@@ -31,6 +31,10 @@ and the work, currently under revision,
 
 _M. Ginesi, D. Meli, A. Roberti, N. Sansonetto and P. Fiorini_, **Dynamic Movement Primitives: Volumetric ObstacleAvoidance Using Dynamic Potential Functions**
 
+whose preprint can be found at
+
+https://arxiv.org/abs/2007.00518
+
 ## Install ##
 
 The package can be installed by running

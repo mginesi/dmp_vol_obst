@@ -7,10 +7,6 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import seaborn
 
-# To use the codes in the main folder
-import sys
-sys.path.insert(0, 'codes/')
-sys.path.insert(0, '../codes/')
 from matplotlib import rc
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 ## for Palatino and other serif fonts use:
