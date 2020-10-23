@@ -73,7 +73,7 @@ class Obstacle_Potential_Dynamic():
                 phi_x = np.zeros_like(x)
             else:
                 nabla_p = (x - self.x_obst) / p_x
-                nabla_dot = (x - self.x_obst) * v
+                nabla_dot = v
                 dot_p = np.dot(v, x - self.x_obst)
                 nabla_cos = (p_x * nabla_dot - dot_p * nabla_p) / \
                     np.linalg.norm(v) / p_x / p_x
