@@ -10,7 +10,7 @@ rc('font',**{'family':'sans-serif','sans-serif':['Helvetica'],
     'size':'14'})
 rc('text', usetex=True)
 
-from dmp.dmp_cartesian import DMPs_cartesian
+from dmp.dmp import DMPs_cartesian
 from dmp.obstacle_superquadric import Obstacle_Dynamic as sq_dyn
 from dmp.obstacle_superquadric import Obstacle_Static as sq_stat
 from dmp.point_obstacle import Obstacle_Steering as pt_steer

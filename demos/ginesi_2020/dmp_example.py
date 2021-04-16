@@ -3,7 +3,7 @@ Ginesi et al. 2020, fig 1
 """
 
 import numpy as np
-from dmp.dmp_cartesian import DMPs_cartesian as dmp_cart
+from dmp.dmp import DMPs_cartesian as dmp_cart
 
 # Plot stuff
 import matplotlib.pyplot as plt
