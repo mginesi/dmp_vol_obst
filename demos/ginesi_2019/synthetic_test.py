@@ -15,11 +15,11 @@ rc('text', usetex=True)
 
 import pdb
 
-from dmp import dmp_cartesian
+from dmp.dmp import DMPs_cartesian
 
 # DMP initialization
 num_ts = 300
-dmp = dmp_cartesian.DMPs_cartesian(n_dmps=3, n_bfs=40, K = 3050 * np.ones(3), dt = .001, alpha_s = 3.)
+dmp = DMPs_cartesian(n_dmps=3, n_bfs=40, K = 3050 * np.ones(3), dt = .001, alpha_s = 3.)
 dmp.w = np.zeros([dmp.n_dmps, dmp.n_bfs + 1])
 dmp.tol = 1e-02
 x0 = np.array([0.519, -0.327, 0.084])

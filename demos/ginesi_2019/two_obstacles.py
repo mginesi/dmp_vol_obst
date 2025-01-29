@@ -15,7 +15,7 @@ rc('text', usetex=True)
 
 import pdb
 
-from dmp import dmp_cartesian
+from dmp.dmp import DMPs_cartesian
 from dmp import obstacle_superquadric
 from dmp import point_obstacle
 
@@ -42,7 +42,7 @@ x_des[:, 1] = y
 x_des -= x_des[0]
 
 # Learning of the trajectory
-dmp = dmp_cartesian.DMPs_cartesian(n_dmps = 2, n_bfs = 40, K = 1000.0, dt = 0.01, alpha_s = 3.0, tol = 2e-02)
+dmp = DMPs_cartesian(n_dmps = 2, n_bfs = 40, K = 1000.0, dt = 0.01, alpha_s = 3.0, tol = 2e-02)
 dmp.imitate_path(x_des = x_des)
 x_track, _, _, _ = dmp.rollout()
 x_classical = x_track
