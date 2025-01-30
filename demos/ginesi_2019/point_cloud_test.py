@@ -17,7 +17,7 @@ rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 #rc('font',**{'family':'serif','serif':['Palatino']})
 rc('text', usetex=True)
 
-from dmp.dmp_cartesian import DMPs_cartesian as dyn_mp
+from dmp.dmp import DMPs_cartesian as dyn_mp
 from dmp.obstacle_superquadric import Obstacle_Static as obst
 from dmp.ellipsoid import EllipsoidTool
 ET = EllipsoidTool()
